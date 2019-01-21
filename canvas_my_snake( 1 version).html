@@ -1,0 +1,113 @@
+<html>
+  <meta charset="utf8">
+  <style>
+	  body {
+		  background-color: black;
+	  }
+	  canvas {
+		  background-color: white;
+	  }
+  </style>
+<body>
+	<canvas id="mySnake" width="400" height="300">
+		<span>该浏览器不支持canvas</span>
+	</canvas>
+	<script>
+		const STEP = 10; // 方块大小
+		const SNAKE_LENGTH = 24; // 蛇的长度（方块数量）
+		var cv = document.getElementById("mySnake");
+		var ctx = cv.getContext("2d");
+		var snake = [];
+		// 初始化list
+		for(var i = SNAKE_LENGTH - 1; i >= 0; i--){
+			snake.push({
+				left: STEP,
+				top: i * STEP
+			});
+		}
+		// 方向
+		stepLeft = 0;
+		stepTop = STEP;
+		// 添加食物
+		var foodX = Math.ceil(Math.random() * (cv.offsetWidth / 10)) * 10;
+		var foodY = Math.ceil(Math.random() * (cv.offsetHeight / 10)) * 10;
+		var foodColor = "#" + Math.ceil(Math.random() * 255).toString(16) + Math.ceil(Math.random() * 255).toString(16) + Math.ceil(Math.random() * 255).toString(16);  
+		var snakeColor = "black";
+		var timer = setInterval(function(){
+			var snakeHead = {
+				left: snake[0].left,
+				top: snake[0].top
+			};
+			snake.unshift({
+				left: snakeHead.left + stepLeft,
+				top: snakeHead.top + stepTop
+			});
+			snake.pop();
+			// 获取键盘点击事件（ 左 37  上 38  右 39  下 40 ）
+			document.onkeyup = function(e){
+				var e = e || widnow.event;
+				if( e.keyCode == 37){ stepLeft = -STEP; stepTop = 0; }
+				else if( e.keyCode == 38){ stepLeft = 0; stepTop = -STEP; }
+				else if( e.keyCode == 39){ stepLeft = STEP; stepTop = 0; }
+				else if( e.keyCode == 40){ stepLeft = 0; stepTop = STEP; }
+			}
+			// 撞墙
+			if( snake[0].left <= cv.offsetLeft || snake[0].left >= cv.offsetLeft + cv.offsetWidth - STEP ||
+			snake[0].top <= cv.offsetTop || snake[0].top >= cv.offsetTop + cv.offsetHeight - STEP){
+				clearInterval(timer);
+				ctx.font = 'bold 25px Arial';
+				ctx.fillText("Game Over", 130, 150, 300);
+			} else {
+				// 每次重画前需要清画布
+				ctx.clearRect(cv.offsetLeft, cv.offsetTop, cv.offsetWidth, cv.offsetHeight);
+			}
+			
+			// 吃到食物
+			if(snake[0].left == foodX && snake[0].top == foodY){
+				snakeColor = foodColor;
+				snake.push({
+					left: snake[snake.length - 1].left,
+					top: snake[snake.length - 1].top
+				});
+				foodX = Math.ceil(Math.random() * ( (cv.offsetWidth - 100) / 10)) * 10 + 50;
+				foodY = Math.ceil(Math.random() * ( (cv.offsetHeight - 100 ) / 10)) * 10 + 50;
+				foodColor = "#" + Math.ceil(Math.random() * 255).toString(16) + Math.ceil(Math.random() * 255).toString(16) + Math.ceil(Math.random() * 255).toString(16); 
+			}
+			snake.forEach(function(item, index){
+				ctx.save();
+				ctx.fillStyle = snakeColor;
+				ctx.fillRect(item.left, item.top, STEP, STEP);
+				ctx.restore();
+			});
+
+			// 添加食物
+			ctx.save();
+			ctx.fillStyle = foodColor;
+			ctx.fillRect(foodX, foodY, STEP, STEP);
+			ctx.restore();
+		
+		}, 100);
+
+		// 每次点击键盘后添加新的运动方向（list顶部添加：shift）
+		function addDirection(left, top){
+			moveDirectList.unshift({
+				thres: 0,
+				left: left,
+				top: top
+			});
+		}
+
+		// 查看每个小方块属于哪个方向的区间
+		function checkDirectionList(item, index){
+			for (var i = 0; i < moveDirectList.length; i++){
+				// 第index个方块属于哪一个direction的index区间
+				if(index <= moveDirectList[i].thres){
+					item.left += moveDirectList[i].left;
+					item.top += moveDirectList[i].top;
+					break;
+				}
+			}
+		}
+	</script>
+</body>
+</html>
